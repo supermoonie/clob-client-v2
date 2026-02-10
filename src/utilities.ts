@@ -37,6 +37,14 @@ export function orderToJsonV2<T extends OrderType>(
 	orderType: T,
 	deferExec = false,
 ): NewOrderV2<T> {
+	let side: string;
+	// TODO: use actual enum string
+	if (order.side === 0) {
+		side = "BUY";
+	} else {
+		side = "SELL";
+	}
+
 	return {
 		deferExec,
 		order: {
@@ -47,9 +55,8 @@ export function orderToJsonV2<T extends OrderType>(
 			tokenId: order.tokenId,
 			makerAmount: order.makerAmount,
 			takerAmount: order.takerAmount,
-			side: order.side,
+			side: side,
 			expiration: order.expiration,
-			nonce: order.nonce,
 			signatureType: order.signatureType,
 			timestamp: order.timestamp,
 			metadata: order.metadata,
