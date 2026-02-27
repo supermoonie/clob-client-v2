@@ -8,6 +8,10 @@ export interface ApiKeyCreds {
 	passphrase: string;
 }
 
+export interface BuilderConfig {
+	builderCode: string;
+}
+
 export interface ApiKeyRaw {
 	apiKey: string;
 	secret: string;
@@ -37,14 +41,6 @@ export interface L2PolyHeader extends SimpleHeaders {
 	POLY_TIMESTAMP: string;
 	POLY_API_KEY: string;
 	POLY_PASSPHRASE: string;
-}
-
-// Builder API key verification
-export interface L2WithBuilderHeader extends L2PolyHeader {
-	POLY_BUILDER_API_KEY: string;
-	POLY_BUILDER_TIMESTAMP: string;
-	POLY_BUILDER_PASSPHRASE: string;
-	POLY_BUILDER_SIGNATURE: string;
 }
 
 export enum OrderType {
@@ -138,6 +134,10 @@ export interface TradeParams {
 	asset_id?: string;
 	before?: string;
 	after?: string;
+}
+
+export interface BuilderTradeParams extends TradeParams {
+	builder_code: string;
 }
 
 export interface OpenOrderParams {
@@ -381,18 +381,6 @@ export interface Earning {
 	asset_rate: number;
 }
 
-export interface BuilderApiKey {
-	key: string;
-	secret: string;
-	passphrase: string;
-}
-
-export interface BuilderApiKeyResponse {
-	key: string;
-	createdAt?: string;
-	revokedAt?: string;
-}
-
 export interface UserRewardsEarning {
 	condition_id: string;
 	question: string;
@@ -433,6 +421,18 @@ export interface BuilderTrade {
 	err_msg?: string | null;
 	createdAt: string | null;
 	updatedAt: string | null;
+}
+
+export interface BuilderApiKey {
+	key: string;
+	secret: string;
+	passphrase: string;
+}
+
+export interface BuilderApiKeyResponse {
+	key: string;
+	createdAt?: string;
+	revokedAt?: string;
 }
 
 export type ClobErrorResponseBody = {
