@@ -902,13 +902,14 @@ export class ClobClient {
 		userOrder: UserOrderV2,
 		options?: Partial<CreateOrderOptions>,
 		orderType: T = OrderType.GTC as T,
+		postOnly = false,
 		deferExec = false,
 	): Promise<any> {
 		let postOrderResponse: any;
 
 		await this._retryOnVersionUpdate(async () => {
 			const order = await this.createOrder(userOrder, options);
-			postOrderResponse = await this.postOrder(order, orderType, deferExec);
+			postOrderResponse = await this.postOrder(order, orderType, postOnly, deferExec);
 		});
 
 		return postOrderResponse;
@@ -924,7 +925,7 @@ export class ClobClient {
 
 		await this._retryOnVersionUpdate(async () => {
 			const order = await this.createMarketOrder(userMarketOrder, options);
-			postOrderMarketResponse = await this.postOrder(order, orderType, deferExec);
+			postOrderMarketResponse = await this.postOrder(order, orderType, false, deferExec);
 		});
 
 		return postOrderMarketResponse;
@@ -1001,14 +1002,18 @@ export class ClobClient {
 	public async postOrder<T extends OrderType = OrderType.GTC>(
 		order: SignedOrder,
 		orderType: T = OrderType.GTC as T,
+		postOnly = false,
 		deferExec = false,
 	): Promise<any> {
 		this.canL2Auth();
+		if (postOnly && (orderType === OrderType.FOK || orderType === OrderType.FAK)) {
+			throw new Error("postOnly is not supported for FOK/FAK orders");
+		}
 		const endpoint = POST_ORDER;
 
 		const orderPayload = isV2Order(order)
-			? orderToJsonV2(order, this.creds?.key || "", orderType, deferExec)
-			: orderToJsonV1(order, this.creds?.key || "", orderType, deferExec);
+			? orderToJsonV2(order, this.creds?.key || "", orderType, postOnly, deferExec)
+			: orderToJsonV1(order, this.creds?.key || "", orderType, postOnly, deferExec);
 
 		const l2HeaderArgs = {
 			method: POST,
@@ -1033,16 +1038,26 @@ export class ClobClient {
 		return res;
 	}
 
-	public async postOrders(args: PostOrdersArgs[], deferExec = false): Promise<any> {
+	public async postOrders(
+		args: PostOrdersArgs[],
+		postOnly = false,
+		deferExec = false,
+	): Promise<any> {
 		this.canL2Auth();
+		if (
+			postOnly &&
+			args.some(({ orderType }) => orderType === OrderType.FOK || orderType === OrderType.FAK)
+		) {
+			throw new Error("postOnly is not supported for FOK/FAK orders");
+		}
 		const endpoint = POST_ORDERS;
 		const ordersPayload: (NewOrderV2<any> | NewOrderV1<any>)[] = [];
 		for (const arg of args) {
 			const { order, orderType } = arg;
 			// Version-aware dispatch
 			const orderPayload = isV2Order(order)
-				? orderToJsonV2(order, this.creds?.key || "", orderType, deferExec)
-				: orderToJsonV1(order, this.creds?.key || "", orderType, deferExec);
+				? orderToJsonV2(order, this.creds?.key || "", orderType, postOnly, deferExec)
+				: orderToJsonV1(order, this.creds?.key || "", orderType, postOnly, deferExec);
 			ordersPayload.push(orderPayload);
 		}
 
