@@ -44,4 +44,4 @@ const getContractConfig = (chainID: number): ContractConfig => {
 };
 
 export type { ContractConfig };
-export { getContractConfig, COLLATERAL_TOKEN_DECIMALS, CONDITIONAL_TOKEN_DECIMALS };
+export { COLLATERAL_TOKEN_DECIMALS, CONDITIONAL_TOKEN_DECIMALS, getContractConfig };

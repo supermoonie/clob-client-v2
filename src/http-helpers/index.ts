@@ -1,8 +1,8 @@
 /* eslint-disable max-depth */
 import axios, { type Method, type RawAxiosRequestHeaders } from "axios";
 import { isBrowser } from "browser-or-node";
-import { HttpsProxyAgent } from "https-proxy-agent";
 import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 import type { DropNotificationParams, OrdersScoringParams } from "../types/index.js";
 
@@ -15,7 +15,7 @@ export const PUT = "PUT";
 export interface ProxyConfig {
 	host: string;
 	port: number;
-	protocol?: 'http' | 'https';
+	protocol?: "http" | "https";
 	auth?: {
 		username: string;
 		password: string;
@@ -35,10 +35,10 @@ const getProxyAgent = (url: string): any => {
 	if (!globalProxyConfig || isBrowser) return undefined;
 
 	const proxyUrl = globalProxyConfig.auth
-		? `${globalProxyConfig.protocol || 'http'}://${globalProxyConfig.auth.username}:${globalProxyConfig.auth.password}@${globalProxyConfig.host}:${globalProxyConfig.port}`
-		: `${globalProxyConfig.protocol || 'http'}://${globalProxyConfig.host}:${globalProxyConfig.port}`;
+		? `${globalProxyConfig.protocol || "http"}://${globalProxyConfig.auth.username}:${globalProxyConfig.auth.password}@${globalProxyConfig.host}:${globalProxyConfig.port}`
+		: `${globalProxyConfig.protocol || "http"}://${globalProxyConfig.host}:${globalProxyConfig.port}`;
 
-	const isHttps = url.startsWith('https');
+	const isHttps = url.startsWith("https");
 
 	if (isHttps) {
 		return new HttpsProxyAgent(proxyUrl);
