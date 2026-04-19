@@ -1,6 +1,8 @@
 /* eslint-disable max-depth */
 import axios, { type Method, type RawAxiosRequestHeaders } from "axios";
 import { isBrowser } from "browser-or-node";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { HttpProxyAgent } from "http-proxy-agent";
 
 import type { DropNotificationParams, OrdersScoringParams } from "../types/index.js";
 
@@ -8,6 +10,42 @@ export const GET = "GET";
 export const POST = "POST";
 export const DELETE = "DELETE";
 export const PUT = "PUT";
+
+// 代理配置接口
+export interface ProxyConfig {
+	host: string;
+	port: number;
+	protocol?: 'http' | 'https';
+	auth?: {
+		username: string;
+		password: string;
+	};
+}
+
+// 全局代理配置
+let globalProxyConfig: ProxyConfig | null = null;
+
+// 设置全局代理
+export const setGlobalProxy = (config: ProxyConfig | null): void => {
+	globalProxyConfig = config;
+};
+
+// 获取代理agent
+const getProxyAgent = (url: string): any => {
+	if (!globalProxyConfig || isBrowser) return undefined;
+
+	const proxyUrl = globalProxyConfig.auth
+		? `${globalProxyConfig.protocol || 'http'}://${globalProxyConfig.auth.username}:${globalProxyConfig.auth.password}@${globalProxyConfig.host}:${globalProxyConfig.port}`
+		: `${globalProxyConfig.protocol || 'http'}://${globalProxyConfig.host}:${globalProxyConfig.port}`;
+
+	const isHttps = url.startsWith('https');
+
+	if (isHttps) {
+		return new HttpsProxyAgent(proxyUrl);
+	} else {
+		return new HttpProxyAgent(proxyUrl);
+	}
+};
 
 const overloadHeaders = (
 	method: Method,
@@ -33,9 +71,23 @@ export const request = async (
 	headers?: any,
 	data?: any,
 	params?: any,
+	proxyConfig?: ProxyConfig, // 添加可选参数支持临时代理
 ): Promise<any> => {
 	overloadHeaders(method, headers);
-	return await axios({ method, url: endpoint, headers, data, params });
+
+	// 优先使用传入的代理配置，否则使用全局代理配置
+	const activeProxy = proxyConfig || globalProxyConfig;
+	const agent = activeProxy ? getProxyAgent(endpoint) : undefined;
+
+	return await axios({
+		method,
+		url: endpoint,
+		headers,
+		data,
+		params,
+		httpAgent: agent,
+		httpsAgent: agent,
+	});
 };
 
 export type QueryParams = Record<string, any>;
@@ -44,6 +96,7 @@ export interface RequestOptions {
 	headers?: RawAxiosRequestHeaders;
 	data?: any;
 	params?: QueryParams;
+	proxyConfig?: ProxyConfig; // 添加代理配置到请求选项中
 }
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -60,6 +113,7 @@ export const post = async (
 			options?.headers,
 			options?.data,
 			options?.params,
+			options?.proxyConfig,
 		);
 		return resp.data;
 	} catch (err: unknown) {
@@ -73,6 +127,7 @@ export const post = async (
 					options?.headers,
 					options?.data,
 					options?.params,
+					options?.proxyConfig,
 				);
 				return resp.data;
 			} catch (retryErr: unknown) {
@@ -85,7 +140,14 @@ export const post = async (
 
 export const get = async (endpoint: string, options?: RequestOptions): Promise<any> => {
 	try {
-		const resp = await request(endpoint, GET, options?.headers, options?.data, options?.params);
+		const resp = await request(
+			endpoint,
+			GET,
+			options?.headers,
+			options?.data,
+			options?.params,
+			options?.proxyConfig,
+		);
 		return resp.data;
 	} catch (err: unknown) {
 		return errorHandling(err);
@@ -100,6 +162,7 @@ export const del = async (endpoint: string, options?: RequestOptions): Promise<a
 			options?.headers,
 			options?.data,
 			options?.params,
+			options?.proxyConfig,
 		);
 		return resp.data;
 	} catch (err: unknown) {
