@@ -19,7 +19,7 @@ export const initAxiosInstance = (config?: AxiosRequestConfig): AxiosInstance =>
 };
 
 // 获取当前 axios 实例，如果未初始化则自动初始化
-const getAxiosInstance = (): AxiosInstance => {
+export const getAxiosInstance = (): AxiosInstance => {
     if (!axiosInstance) {
         return initAxiosInstance();
     }

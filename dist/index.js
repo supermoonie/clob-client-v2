@@ -2457,6 +2457,7 @@ export {
   createL2Headers,
   del,
   get,
+  getAxiosInstance,
   getContractConfig,
   initAxiosInstance,
   isV2Order,
