@@ -1,5 +1,5 @@
 import { WalletClient } from 'viem';
-import { RawAxiosRequestHeaders, Method } from 'axios';
+import { RawAxiosRequestHeaders, AxiosRequestConfig, AxiosInstance, Method } from 'axios';
 
 type TypedDataDomain = Record<string, unknown>;
 type TypedDataTypes = Record<string, Array<{
@@ -1003,29 +1003,18 @@ declare const GET = "GET";
 declare const POST = "POST";
 declare const DELETE = "DELETE";
 declare const PUT = "PUT";
-interface ProxyConfig {
-    host: string;
-    port: number;
-    protocol?: "http" | "https";
-    auth?: {
-        username: string;
-        password: string;
-    };
-}
-declare const setGlobalProxy: (config: ProxyConfig | null) => void;
-declare const request: (endpoint: string, method: Method, headers?: any, data?: any, params?: any, proxyConfig?: ProxyConfig) => Promise<any>;
+declare const initAxiosInstance: (config?: AxiosRequestConfig) => AxiosInstance;
+declare const request: (endpoint: string, method: Method, headers?: any, data?: any, params?: any) => Promise<any>;
 type QueryParams = Record<string, any>;
 interface RequestOptions {
     headers?: RawAxiosRequestHeaders;
     data?: any;
     params?: QueryParams;
-    proxyConfig?: ProxyConfig;
 }
 declare const post: (endpoint: string, options?: RequestOptions, retryOnError?: boolean) => Promise<any>;
 declare const get: (endpoint: string, options?: RequestOptions) => Promise<any>;
 declare const del: (endpoint: string, options?: RequestOptions) => Promise<any>;
 declare const parseOrdersScoringParams: (orderScoringParams?: OrdersScoringParams) => QueryParams;
 declare const parseDropNotificationParams: (dropNotificationParams?: DropNotificationParams) => QueryParams;
-declare const cleanup: () => void;
 
-export { ApiError, type ApiKeyCreds, type ApiKeyRaw, type ApiKeysResponse, AssetType, type BalanceAllowanceParams, type BalanceAllowanceResponse, type BanStatus, type BookParams, type BuilderApiKey, type BuilderApiKeyResponse, type BuilderConfig, type BuilderFeeRates, type BuilderTrade, type BuilderTradeParams, type BuilderTradesResponse, COLLATERAL_TOKEN_DECIMALS, CONDITIONAL_TOKEN_DECIMALS, Chain, ClobClient, type ClobClientOptions, type ClobErrorResponseBody, type ClobToken, type ContractConfig, type CreateOrderOptions, DELETE, type DropNotificationParams, type Earning, type FeeDetails, type FeeInfo, type FeeInfos, type FeeRates, GET, type L1PolyHeader, L1_AUTH_UNAVAILABLE_ERROR, type L2HeaderArgs, type L2PolyHeader, L2_AUTH_NOT_AVAILABLE, type MakerOrder, type MarketDetails, type MarketPrice, type MarketReward, type MarketTradeEvent, type NegRisk, type NewOrderV1, type NewOrderV2, type Notification, type OpenOrder, type OpenOrderParams, type OpenOrdersResponse, type OrderBookSummary, OrderBuilder, type OrderMarketCancelParams, type OrderPayload, type OrderResponse, type OrderScoring, type OrderScoringParams, type OrderSummary, OrderType, type OrdersScoring, type OrdersScoringParams, POST, PUT, type PaginationPayload, type PostOrdersArgs, type PostOrdersV1Args, type PostOrdersV2Args, type PreMigrationOrder, type PreMigrationOrdersResponse, type PriceHistoryFilterParams, PriceHistoryInterval, type ProxyConfig, type QueryParams, type ReadonlyApiKeyResponse, type RequestOptions, type RewardsConfig, type RewardsPercentages, type RoundConfig, Side, SignatureTypeV1, SignatureTypeV2, type SignedOrder, type SimpleHeaders, type TickSize, type TickSizes, type Token, type TokenConditionMap, type TotalUserEarning, type Trade, type TradeParams, type TradesPaginatedResponse, type UserEarning, type UserMarketOrderV1, type UserMarketOrderV2, type UserOrderV1, type UserOrderV2, type UserRewardsEarning, type VersionedPostOrdersArgs, type VersionedSignedOrder, type VersionedUserMarketOrder, type VersionedUserOrder, adjustBuyAmountForFees, cleanup, createL1Headers, createL2Headers, del, get, getContractConfig, isV2Order, orderToJsonV1, orderToJsonV2, parseDropNotificationParams, parseOrdersScoringParams, post, request, setGlobalProxy };
+export { ApiError, type ApiKeyCreds, type ApiKeyRaw, type ApiKeysResponse, AssetType, type BalanceAllowanceParams, type BalanceAllowanceResponse, type BanStatus, type BookParams, type BuilderApiKey, type BuilderApiKeyResponse, type BuilderConfig, type BuilderFeeRates, type BuilderTrade, type BuilderTradeParams, type BuilderTradesResponse, COLLATERAL_TOKEN_DECIMALS, CONDITIONAL_TOKEN_DECIMALS, Chain, ClobClient, type ClobClientOptions, type ClobErrorResponseBody, type ClobToken, type ContractConfig, type CreateOrderOptions, DELETE, type DropNotificationParams, type Earning, type FeeDetails, type FeeInfo, type FeeInfos, type FeeRates, GET, type L1PolyHeader, L1_AUTH_UNAVAILABLE_ERROR, type L2HeaderArgs, type L2PolyHeader, L2_AUTH_NOT_AVAILABLE, type MakerOrder, type MarketDetails, type MarketPrice, type MarketReward, type MarketTradeEvent, type NegRisk, type NewOrderV1, type NewOrderV2, type Notification, type OpenOrder, type OpenOrderParams, type OpenOrdersResponse, type OrderBookSummary, OrderBuilder, type OrderMarketCancelParams, type OrderPayload, type OrderResponse, type OrderScoring, type OrderScoringParams, type OrderSummary, OrderType, type OrdersScoring, type OrdersScoringParams, POST, PUT, type PaginationPayload, type PostOrdersArgs, type PostOrdersV1Args, type PostOrdersV2Args, type PreMigrationOrder, type PreMigrationOrdersResponse, type PriceHistoryFilterParams, PriceHistoryInterval, type QueryParams, type ReadonlyApiKeyResponse, type RequestOptions, type RewardsConfig, type RewardsPercentages, type RoundConfig, Side, SignatureTypeV1, SignatureTypeV2, type SignedOrder, type SimpleHeaders, type TickSize, type TickSizes, type Token, type TokenConditionMap, type TotalUserEarning, type Trade, type TradeParams, type TradesPaginatedResponse, type UserEarning, type UserMarketOrderV1, type UserMarketOrderV2, type UserOrderV1, type UserOrderV2, type UserRewardsEarning, type VersionedPostOrdersArgs, type VersionedSignedOrder, type VersionedUserMarketOrder, type VersionedUserOrder, adjustBuyAmountForFees, createL1Headers, createL2Headers, del, get, getContractConfig, initAxiosInstance, isV2Order, orderToJsonV1, orderToJsonV2, parseDropNotificationParams, parseOrdersScoringParams, post, request };

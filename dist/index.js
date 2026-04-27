@@ -241,111 +241,20 @@ var createL2Headers = async (signer, creds, l2HeaderArgs, timestamp) => {
 // src/http-helpers/index.ts
 import axios from "axios";
 import { isBrowser } from "browser-or-node";
-import { HttpProxyAgent } from "http-proxy-agent";
-import { HttpsProxyAgent } from "https-proxy-agent";
 var GET = "GET";
 var POST = "POST";
 var DELETE = "DELETE";
 var PUT = "PUT";
-var globalProxyConfig = null;
 var axiosInstance = null;
-var setGlobalProxy = (config) => {
-  globalProxyConfig = config;
-  resetAxiosInstance();
-};
-var resetAxiosInstance = () => {
-  if (axiosInstance?.defaults.httpAgent) {
-    axiosInstance.defaults.httpAgent?.destroy?.();
-  }
-  if (axiosInstance?.defaults.httpsAgent) {
-    axiosInstance.defaults.httpsAgent?.destroy?.();
-  }
-  axiosInstance = null;
-};
-var cachedHttpAgent = null;
-var cachedHttpsAgent = null;
-var cachedProxyUrl = null;
-var clearProxyAgentCache = () => {
-  if (cachedHttpAgent) {
-    cachedHttpAgent.destroy?.();
-    cachedHttpAgent = null;
-  }
-  if (cachedHttpsAgent) {
-    cachedHttpsAgent.destroy?.();
-    cachedHttpsAgent = null;
-  }
-  cachedProxyUrl = null;
-};
-var getProxyAgent = (url) => {
-  if (!globalProxyConfig || isBrowser) return void 0;
-  const proxyUrl = globalProxyConfig.auth ? `${globalProxyConfig.protocol || "http"}://${globalProxyConfig.auth.username}:${globalProxyConfig.auth.password}@${globalProxyConfig.host}:${globalProxyConfig.port}` : `${globalProxyConfig.protocol || "http"}://${globalProxyConfig.host}:${globalProxyConfig.port}`;
-  const isHttps = url.startsWith("https");
-  if (cachedProxyUrl !== proxyUrl) {
-    clearProxyAgentCache();
-    cachedProxyUrl = proxyUrl;
-  }
-  const agentConfig = {
-    keepAlive: true,
-    keepAliveMsecs: 1e3,
-    maxSockets: 50,
-    // 降低以避免内存泄漏
-    maxFreeSockets: 10,
-    // 保持较少的空闲连接
-    scheduling: "lifo",
-    timeout: 6e4
-  };
-  if (isHttps) {
-    if (!cachedHttpsAgent) {
-      cachedHttpsAgent = new HttpsProxyAgent(proxyUrl, agentConfig);
-      cachedHttpsAgent.setMaxListeners?.(20);
-    }
-    return cachedHttpsAgent;
-  } else {
-    if (!cachedHttpAgent) {
-      cachedHttpAgent = new HttpProxyAgent(proxyUrl, agentConfig);
-      cachedHttpAgent.setMaxListeners?.(20);
-    }
-    return cachedHttpAgent;
-  }
-};
-var getAxiosInstance = (proxyConfig) => {
-  if (proxyConfig) {
-    return createAxiosInstance(proxyConfig);
-  }
-  if (!axiosInstance) {
-    axiosInstance = createAxiosInstance(globalProxyConfig || void 0);
-  }
+var initAxiosInstance = (config) => {
+  axiosInstance = axios.create(config);
   return axiosInstance;
 };
-var createAxiosInstance = (proxyConfig) => {
-  const activeProxy = proxyConfig || globalProxyConfig;
-  const agent = activeProxy && !isBrowser ? getProxyAgent("https://") : void 0;
-  const instance = axios.create({
-    timeout: 3e4,
-    maxRedirects: 5,
-    // 限制重定向次数
-    maxContentLength: 50 * 1024 * 1024,
-    // 50MB
-    httpAgent: agent,
-    httpsAgent: agent
-  });
-  if (agent?.setMaxListeners) {
-    agent.setMaxListeners(20);
+var getAxiosInstance = () => {
+  if (!axiosInstance) {
+    return initAxiosInstance();
   }
-  instance.interceptors.request.use(
-    (config) => {
-      if (activeProxy && !isBrowser && !config.httpAgent && !config.httpsAgent) {
-        const requestAgent = getProxyAgent(config.url || "https://");
-        config.httpAgent = requestAgent;
-        config.httpsAgent = requestAgent;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
-  return instance;
+  return axiosInstance;
 };
 var overloadHeaders = (method, headers = {}) => {
   if (isBrowser) {
@@ -359,9 +268,9 @@ var overloadHeaders = (method, headers = {}) => {
     headers["Accept-Encoding"] = "gzip";
   }
 };
-var request = async (endpoint, method, headers, data, params, proxyConfig) => {
+var request = async (endpoint, method, headers, data, params) => {
   overloadHeaders(method, headers);
-  const instance = getAxiosInstance(proxyConfig);
+  const instance = getAxiosInstance();
   return await instance({
     method,
     url: endpoint,
@@ -378,8 +287,7 @@ var post = async (endpoint, options, retryOnError = false) => {
       POST,
       options?.headers,
       options?.data,
-      options?.params,
-      options?.proxyConfig
+      options?.params
     );
     return resp.data;
   } catch (err) {
@@ -392,8 +300,7 @@ var post = async (endpoint, options, retryOnError = false) => {
           POST,
           options?.headers,
           options?.data,
-          options?.params,
-          options?.proxyConfig
+          options?.params
         );
         return resp.data;
       } catch (retryErr) {
@@ -410,8 +317,7 @@ var get = async (endpoint, options) => {
       GET,
       options?.headers,
       options?.data,
-      options?.params,
-      options?.proxyConfig
+      options?.params
     );
     return resp.data;
   } catch (err) {
@@ -425,8 +331,7 @@ var del = async (endpoint, options) => {
       DELETE,
       options?.headers,
       options?.data,
-      options?.params,
-      options?.proxyConfig
+      options?.params
     );
     return resp.data;
   } catch (err) {
@@ -493,10 +398,6 @@ var parseDropNotificationParams = (dropNotificationParams) => {
     }
   }
   return params;
-};
-var cleanup = () => {
-  resetAxiosInstance();
-  clearProxyAgentCache();
 };
 
 // src/order-builder/helpers/buildMarketOrderCreationArgs.ts
@@ -2552,19 +2453,18 @@ export {
   SignatureTypeV1,
   SignatureTypeV2,
   adjustBuyAmountForFees,
-  cleanup,
   createL1Headers,
   createL2Headers,
   del,
   get,
   getContractConfig,
+  initAxiosInstance,
   isV2Order,
   orderToJsonV1,
   orderToJsonV2,
   parseDropNotificationParams,
   parseOrdersScoringParams,
   post,
-  request,
-  setGlobalProxy
+  request
 };
 //# sourceMappingURL=index.js.map
