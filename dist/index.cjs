@@ -409,15 +409,6 @@ var del = async (endpoint, options) => {
 var errorHandling = (err) => {
   if (import_axios.default.isAxiosError(err)) {
     if (err.response) {
-      console.error(
-        "[CLOB Client] request error",
-        JSON.stringify({
-          status: err.response?.status,
-          statusText: err.response?.statusText,
-          data: err.response?.data,
-          config: err.response?.config
-        })
-      );
       if (err.response?.data) {
         if (typeof err.response?.data === "string" || err.response?.data instanceof String) {
           return { error: err.response?.data, status: err.response?.status };
@@ -429,16 +420,9 @@ var errorHandling = (err) => {
       }
     }
     if (err.message) {
-      console.error(
-        "[CLOB Client] request error",
-        JSON.stringify({
-          error: err.message
-        })
-      );
       return { error: err.message };
     }
   }
-  console.error("[CLOB Client] request error", err);
   return { error: err };
 };
 var isTransientAxiosError = (err) => {
