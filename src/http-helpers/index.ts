@@ -41,9 +41,17 @@ const getProxyAgent = (url: string): any => {
 	const isHttps = url.startsWith("https");
 
 	if (isHttps) {
-		return new HttpsProxyAgent(proxyUrl);
+		return new HttpsProxyAgent(proxyUrl, {
+			keepAlive: true,
+			maxSockets: 256,
+			maxFreeSockets: 32,
+		});
 	} else {
-		return new HttpProxyAgent(proxyUrl);
+		return new HttpProxyAgent(proxyUrl, {
+			keepAlive: true,
+			maxSockets: 256,
+			maxFreeSockets: 32,
+		});
 	}
 };
 
